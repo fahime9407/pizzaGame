@@ -1,3 +1,2 @@
 # pizzaGame
-you can play with 'wsad' keys
-and you can quit with 'q' key
+you can use 'wsad' keys to play and 'q' to quit.
