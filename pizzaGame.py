@@ -4,7 +4,7 @@ import time
 
 stdscr = curses.initscr() # to initialize curses and set default settings to start
 curses.noecho() # to turn off echo in  command prompt
-curses.cbreak() # no nead to Enter key
+curses.cbreak() # no need to press Enter
 stdscr.keypad(True)
 curses.curs_set(False)
 stdscr.nodelay(True)
@@ -31,7 +31,7 @@ def init():
         fa = random.randint(1000, 10000)
         foods.append((fl, fc, fa))
     # enemies
-    for j in range(6):
+    for j in range(7):
         el, ec = random_place()
         enemy.append((el, ec))
     player_l, player_c = random_place()
@@ -41,16 +41,16 @@ def move_enemy():
     for i in range(len(enemy)):
         el, ec = enemy[i]
         # enemies speed
-        if random.random() > 0.95 :
+        if random.random() > 0.94 :
             if el > player_l :
                 el -= 1
-        if random.random() > 0.95 :
+        if random.random() > 0.94 :
             if ec > player_c :
                 ec -= 1
-        if random.random() > 0.95 :
+        if random.random() > 0.94 :
             if el < player_l :
                 el += 1
-        if random.random() > 0.95 :
+        if random.random() > 0.94 :
             if ec < player_c :
                 ec += 1
         el = in_area(el, 0, maxl-1)
