@@ -1,3 +1,3 @@
 # pizzaGame
-'X' is player, 'E' is enemy, '.' is obstacles and '*' is score.
+'X' is the player, 'E' is enemy, '.' is obstacle and '*' is score.
 You can use 'wsad' keys to play and 'q' to quit.
