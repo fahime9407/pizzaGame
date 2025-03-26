@@ -45,7 +45,3 @@ Survive, collect food, and score **1000 points** to win. But beware—**enemies 
 
 Enjoy the game! 🚀
 =======
-# pizzaGame
-'X' is the player, 'E' is enemy, '.' is obstacle and '*' is score.
-You can use 'wsad' keys to play and 'q' to quit.
->>>>>>> 5e1102de9d94c85cd0529a7b43ba257caae0df24
