@@ -10,17 +10,11 @@ stdscr.nodelay(True) # This code allows the program to keep running without paus
 # It is better if the player's movement range is one less than the rows and one less than the columns to avoid errors.
 maxl = curses.LINES - 1
 maxc = curses.COLS - 1
-
 world = [] # whole of stdscr
 player_l = player_c = 0 # players's location
-foods = []
-enemy = []
-shoot = []
-gun = []
-score = 0
-life = 3
+foods, enemy, shoot, gun = [], [], [], []
 player_direction = ''
-fire_counter = 50
+score, life, fire_counter = 0, 3, 50
 
 
 def init():
@@ -48,7 +42,95 @@ def init():
     player_l, player_c = maxl // 2, maxc // 2
 
 
+def move(key):
+    # get one of UP DOWN LEFT RIGHT keys and go toward that direction
+    global player_l, player_c, player_direction
+
+    if key == 'KEY_UP'  and world[player_l-1][player_c] != '.' :
+        player_l -= 1
+        player_direction = 'up'
+    elif key == 'KEY_DOWN' and world[player_l+1][player_c] != '.' :
+        player_l += 1
+        player_direction = 'down'
+    elif key == 'KEY_LEFT' and world[player_l][player_c-1] != '.' :
+        player_c -= 1
+        player_direction = 'left'
+    elif key == 'KEY_RIGHT' and world[player_l][player_c+1] != '.' :
+        player_c += 1
+        player_direction = 'right'
+
+    player_l = in_area(player_l, 0, maxl-1)
+    player_c = in_area(player_c, 0, maxc-1)
+    
+
+# this function is useful for keeping positions (like player or enemy) inside the game screen boundaries.
+def in_area(a, min, max):
+    if a < min :
+        return min
+    elif a > max :
+        return max
+    else :
+        return a
+    
+
+# this function calculates the movement direction of fire based on the current player direction,
+def fire():
+    global player_direction, fire_counter
+    direction = {'right': (0, 1), 'left': (0, -1), 'up': (-1, 0), 'down': (1, 0)}
+    # If the player has a shot, can shoot.
+    if fire_counter :
+        if player_direction :
+            dl, dc = direction[player_direction]
+        elif not(player_direction) :
+            dl, dc = direction['up']
+        fire_counter -= 1
+        shoot.append((player_l + dl, player_c + dc, player_direction))
+
+
+def check_food():
+    winner = False
+    global score, playing
+
+    for i in range(len(foods)) :
+        fl, fc, fa = foods[i]
+        fa -= 1 # Each time the player moves, the lifetime of each food item decreases by one.
+
+        # Eating a food item grants 10 points and spawns a new one elsewhere on the game field.
+        if fl == player_l and fc == player_c :
+            score += 10
+            fl, fc = random_place()
+            fa = random.randint(1000, 10000)
+            # If the score exceeds 1000, the player wins the game and the game ends.
+            if score > 1000 : 
+                stdscr.addstr(maxl//2, maxc//2, "YOU WON!")
+                stdscr.refresh() # to display stdscr changes on the screen
+                time.sleep(2)
+                playing, winner = False, True
+        # If the player has won, there is no need to check the continuation of the foods.
+        if winner :
+            break
+
+        # If the food's lifetime ends, a new random food item will spawn.
+        if fa <= 0 :
+            fl, fc = random_place()
+            fa = random.randint(1000, 10000)
+
+        foods[i] = (fl, fc, fa)
+
+
+def check_gun():
+    global fire_counter
+    # if the player eats the guns in game screen receives 10 more shots
+    for i in range(len(gun)):
+        gl, gc = gun[i]
+        if player_l == gl and player_c == gc :
+            fire_counter += 3
+            gl, gc = random_place()
+            gun[i] = (gl, gc)
+
+
 def move_enemy():
+    looser = False
     global playing, life, player_l, player_c
 
     for i in range(len(enemy)):
@@ -82,155 +164,10 @@ def move_enemy():
                 stdscr.addstr(maxl//2, maxc//2, "YOU DIED!")
                 stdscr.refresh()
                 time.sleep(2)
-                playing = False
-
-
-# this function is useful for keeping positions (like player or enemy) inside the game screen boundaries.
-def in_area(a, min, max):
-    if a < min :
-        return min
-    elif a > max :
-        return max
-    else :
-        return a
-
-
-# This function generates random coordinates (x, y) within the game screen, It also ensures that the chosen position is empty.
-def random_place():
-    x = random.randint(0, maxl-1)
-    y = random.randint(0, maxc-1)
-
-    while world[x][y] != ' ' :
-        x = random.randint(0, maxl-1)
-        y = random.randint(0, maxc-1)
-
-    return x, y
-
-
-# This function creates enemies at a suitable distance from the player at the start of the game.
-def random_place_enemy():
-    if random.random() > 0.5 :
-        x = random.randint(0, (maxl//2)-1)
-        y = random.randint(0, (maxc//2)-1)
-    else :
-        x = random.randint((maxl//2)+1, maxl-1)
-        y = random.randint((maxc//2)+1, maxc-1)
-    while world[x][y] != ' ' :
-        if random.random() > 0.5 :
-            x = random.randint(0, (maxl//2)-1)
-            y = random.randint(0, (maxc//2)-1)
-        else :
-            x = random.randint((maxl//2)+1, maxl-1)
-            y = random.randint((maxc//2)+1, maxc-1)
-    return x, y
-
-
-def move(key):
-    # get one of UP DOWN LEFT RIGHT keys and go toward that direction
-    global player_l, player_c, player_direction
-
-    if key == 'KEY_UP'  and world[player_l-1][player_c] != '.' :
-        player_l -= 1
-        player_direction = 'up'
-    elif key == 'KEY_DOWN' and world[player_l+1][player_c] != '.' :
-        player_l += 1
-        player_direction = 'down'
-    elif key == 'KEY_LEFT' and world[player_l][player_c-1] != '.' :
-        player_c -= 1
-        player_direction = 'left'
-    elif key == 'KEY_RIGHT' and world[player_l][player_c+1] != '.' :
-        player_c += 1
-        player_direction = 'right'
-
-    player_l = in_area(player_l, 0, maxl-1)
-    player_c = in_area(player_c, 0, maxc-1)
-
-
-def draw():
-    for i in range(maxl):
-        for j in range(maxc):
-            stdscr.addch(i, j, world[i][j]) # Initially, the empty game field is drawn using '.' and ' ' characters.
-
-    stdscr.addstr(1, 1, f"score : {score}")
-    stdscr.addstr(2, 1, f"life : {life}")
-    stdscr.addstr(3, 1, f"fire : {fire_counter}")
-
-    # showing the foods
-    for food in foods :
-        fl, fc, fa = food
-        stdscr.addch(fl, fc, '*')
-    
-    # showing the guns
-    for g in gun :
-        gl, gc = g
-        stdscr.addch(gl, gc, '0')
-
-    # showing enemies
-    for e in enemy :
-        el, ec = e
-        stdscr.addch(el, ec, 'E')
-
-    # showing shoots
-    for sh in shoot :
-        shl, shc, sh_side = sh
-        stdscr.addch(shl, shc, 'o')
-
-    # showing the player
-    stdscr.addch(player_l, player_c, 'X')
-
-    stdscr.refresh()
-
-
-def check_food():
-    global score, playing
-
-    for i in range(len(foods)) :
-        fl, fc, fa = foods[i]
-        fa -= 1 # Each time the player moves, the lifetime of each food item decreases by one.
-
-        # Eating a food item grants 10 points and spawns a new one elsewhere on the game field.
-        if fl == player_l and fc == player_c :
-            score += 10
-            fl, fc = random_place()
-            fa = random.randint(1000, 10000)
-            # If the score exceeds 1000, the player wins the game and the game ends.
-            if score > 1000 : 
-                stdscr.addstr(maxl//2, maxc//2, "YOU WON!")
-                stdscr.refresh() # to display stdscr changes on the screen
-                time.sleep(2)
-                playing = False
-
-        # If the food's lifetime ends, a new random food item will spawn.
-        if fa <= 0 :
-            fl, fc = random_place()
-            fa = random.randint(1000, 10000)
-
-        foods[i] = (fl, fc, fa)
-
-
-def check_gun():
-    global fire_counter
-    # if the player eats the guns in game screen receives 10 more shots
-    for i in range(len(gun)):
-        gl, gc = gun[i]
-        if player_l == gl and player_c == gc :
-            fire_counter += 3
-            gl, gc = random_place()
-        gun[i] = (gl, gc)
-    
-
-# this function calculates the movement direction of fire based on the current player direction,
-def fire(): # new
-    global player_direction, fire_counter
-    direction = {'right': (0, 1), 'left': (0, -1), 'up': (-1, 0), 'down': (1, 0)}
-    # If the player has a shot, can shoot.
-    if fire_counter :
-        if player_direction :
-            dl, dc = direction[player_direction]
-        elif not(player_direction) :
-            dl, dc = direction['up']
-        fire_counter -= 1
-        shoot.append((player_l + dl, player_c + dc, player_direction))
+                playing, looser = False, True
+        # If the player has lost, there is no need to check the remaining enemies.
+        if looser :
+            break
 
 
 def move_fire():
@@ -270,11 +207,77 @@ def move_fire():
     shoot[:] = new_shoot
 
 
+# This function generates random coordinates (x, y) within the game screen, It also ensures that the chosen position is empty.
+def random_place():
+    x = random.randint(0, maxl-1)
+    y = random.randint(0, maxc-1)
+
+    while world[x][y] != ' ' :
+        x = random.randint(0, maxl-1)
+        y = random.randint(0, maxc-1)
+
+    return x, y
+
+
+# This function creates enemies at a suitable distance from the player at the start of the game.
+def random_place_enemy():
+    if random.random() > 0.5 :
+        x = random.randint(0, maxl-1)
+        y = random.randint(0, (maxc//2)-1)
+    else :
+        x = random.randint(0, maxl-1)
+        y = random.randint((maxc//2)+1, maxc-1)
+    while world[x][y] != ' ' :
+        if random.random() > 0.5 :
+            x = random.randint(0, maxl-1)
+            y = random.randint(0, (maxc//2)-1)
+        else :
+            x = random.randint(0, maxl-1)
+            y = random.randint((maxc//2)+1, maxc-1)
+    return x, y
+
+
+def draw():
+    for i in range(maxl):
+        for j in range(maxc):
+            stdscr.addch(i, j, world[i][j]) # Initially, the empty game field is drawn using '.' and ' ' characters.
+
+    stdscr.addstr(1, 1, f"score : {score}")
+    stdscr.addstr(2, 1, f"life : {life}")
+    stdscr.addstr(3, 1, f"fire : {fire_counter}")
+
+    # showing the foods
+    for food in foods :
+        fl, fc, fa = food
+        stdscr.addch(fl, fc, '*')
+    
+    # showing the guns
+    for g in gun :
+        gl, gc = g
+        stdscr.addch(gl, gc, '0')
+
+    # showing enemies
+    for e in enemy :
+        el, ec = e
+        stdscr.addch(el, ec, 'E')
+
+    # showing shoots
+    for sh in shoot :
+        shl, shc, sh_side = sh
+        stdscr.addch(shl, shc, 'o')
+
+    # showing the player
+    stdscr.addch(player_l, player_c, 'X')
+
+    stdscr.refresh()
+
+
 # start
 init()
-playing = True
 
+playing = True
 while playing :
+    # if user didnt enter any key this code itself assigns the key variable the value of an empty string.
     try :
         key = stdscr.getkey()
     except :
