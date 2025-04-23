@@ -1,6 +1,5 @@
 import curses, random, time
 
-
 stdscr = curses.initscr() # to initialize curses and set default settings to start.
 curses.noecho() # to turn off echo in  command prompt.
 curses.cbreak() # no need to press Enter.
@@ -32,23 +31,19 @@ def init():
         for j in range(0, maxc+1):
             # in the game screen, each position has a 98% probability of being a ' ' and a 2% probability of being a '.'
             world[i].append(' ' if random.random() > 0.02 else '.')
-
     # this section determines the locations where food items are placed in the game screen.
     for i in range(20):
         fl, fc = random_place() # location if food
         fa = random.randint(1000, 10000) # age of food
         foods.append((fl, fc, fa))
-    
     # this section determines the locations where gun items are placed in the game screen.
     for i in range(5):
         gl, gc = random_place() # location if gun
         gun.append((gl, gc))
-
     # this section determines the locations where enemy items are placed in the game screen.
     for j in range(7):
         el, ec = random_place_enemy() # location of enemy
         enemy.append((el, ec))
-
     # the player will be placed in the middle of the screen game.
     player_l, player_c = maxl // 2, maxc // 2
 
@@ -110,6 +105,7 @@ def random_place():
         y = random.randint(0, maxc-1)
 
     return x, y
+
 
 # This function creates enemies at a suitable distance from the player at the start of the game.
 def random_place_enemy():
@@ -210,6 +206,7 @@ def check_food():
             fa = random.randint(1000, 10000)
 
         foods[i] = (fl, fc, fa)
+
 
 def check_gun():
     global fire_counter
