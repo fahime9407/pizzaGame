@@ -40,13 +40,13 @@ def init():
         foods.append((fl, fc, fa))
     
     # this section determines the locations where gun items are placed in the game screen.
-    for i in range(10):
+    for i in range(5):
         gl, gc = random_place() # location if gun
         gun.append((gl, gc))
 
     # this section determines the locations where enemy items are placed in the game screen.
     for j in range(7):
-        el, ec = random_place() # location of enemy
+        el, ec = random_place_enemy() # location of enemy
         enemy.append((el, ec))
 
     # the player will be placed in the middle of the screen game.
@@ -102,13 +102,30 @@ def in_area(a, min, max):
 
 # This function generates random coordinates (x, y) within the game screen, It also ensures that the chosen position is empty.
 def random_place():
-    x = random.randint(0, maxl)
-    y = random.randint(0, maxc)
+    x = random.randint(0, maxl-1)
+    y = random.randint(0, maxc-1)
 
     while world[x][y] != ' ' :
-        x = random.randint(0, maxl)
-        y = random.randint(0, maxc)
+        x = random.randint(0, maxl-1)
+        y = random.randint(0, maxc-1)
 
+    return x, y
+
+# This function creates enemies at a suitable distance from the player at the start of the game.
+def random_place_enemy():
+    if random.random() > 0.5 :
+        x = random.randint(0, (maxl//2)-1)
+        y = random.randint(0, (maxc//2)-1)
+    else :
+        x = random.randint((maxl//2)+1, maxl-1)
+        y = random.randint((maxc//2)+1, maxc-1)
+    while world[x][y] != ' ' :
+        if random.random() > 0.5 :
+            x = random.randint(0, (maxl//2)-1)
+            y = random.randint(0, (maxc//2)-1)
+        else :
+            x = random.randint((maxl//2)+1, maxl-1)
+            y = random.randint((maxc//2)+1, maxc-1)
     return x, y
 
 
@@ -200,7 +217,7 @@ def check_gun():
     for i in range(len(gun)):
         gl, gc = gun[i]
         if player_l == gl and player_c == gc :
-            fire_counter += 10
+            fire_counter += 3
             gl, gc = random_place()
         gun[i] = (gl, gc)
     
