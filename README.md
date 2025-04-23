@@ -48,7 +48,7 @@ pip install windows-curses  # Only for Windows
 
 ## ▶️ How to Run
 
-1. Save the game code in a file, e.g., `game.py`
+1. Save the game code in a file, e.g., `main.py`
 2. Run the file:
 
 ```bash
